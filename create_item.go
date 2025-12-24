@@ -3,6 +3,7 @@ package ews
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -167,9 +168,10 @@ func getItemId(bb []byte) (string, error) {
 
 	resp := soapResp.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage
 
-	if len(resp.Items) > 0 {
-		return resp.Items[0].CalendarItem.ItemId.Id, nil
-	} else {
-		return "Can not unmarshal response", nil
-	}
+	fmt.Println("=========================")
+	fmt.Println(resp)
+	fmt.Println("=========================")
+
+	return resp.Items.CalendarItem.ItemId.Id, nil
+	//return "", errors.New("Can not unmarshal response")
 }
