@@ -32,6 +32,7 @@ type Message struct {
 }
 
 type CalendarItem struct {
+	ItemId                     ItemId      `xml:"t:ItemId"`
 	Subject                    string      `xml:"t:Subject"`
 	Body                       Body        `xml:"t:Body"`
 	ReminderIsSet              bool        `xml:"t:ReminderIsSet"`
@@ -116,7 +117,7 @@ func CreateMessageItem(c Client, m ...Message) error {
 
 // CreateCalendarItem
 // https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-calendar-item
-func CreateCalendarItem(c Client, ci ...CalendarItem) ([]byte, error) {
+func CreateCalendarItem(c Client, ci ...CalendarItem) (string, error) {
 
 	item := &CreateItem{
 		SendMeetingInvitations: "SendToAllAndSaveCopy",
@@ -126,19 +127,24 @@ func CreateCalendarItem(c Client, ci ...CalendarItem) ([]byte, error) {
 
 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	bb, err := c.SendAndReceive(xmlBytes)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if err := checkCreateItemResponseForErrors(bb); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return bb, err
+	id, err := getItemId(bb)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
 }
 
 func checkCreateItemResponseForErrors(bb []byte) error {
@@ -152,4 +158,19 @@ func checkCreateItemResponseForErrors(bb []byte) error {
 		return errors.New(resp.MessageText)
 	}
 	return nil
+}
+
+func getItemId(bb []byte) (string, error) {
+	var soapResp createItemResponseBodyEnvelop
+	if err := xml.Unmarshal(bb, &soapResp); err != nil {
+		return "", err
+	}
+
+	resp := soapResp.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage
+
+	if len(resp.Items.CalendarItem) > 0 {
+		return resp.Items.CalendarItem[0].ItemId.Id, nil
+	} else {
+		return "", nil
+	}
 }

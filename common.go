@@ -18,6 +18,7 @@ type Response struct {
 	MessageText   string        `xml:"MessageText"`
 	ResponseCode  string        `xml:"ResponseCode"`
 	MessageXml    MessageXml    `xml:"MessageXml"`
+	Items         Items         `xml:"Items"`
 }
 
 type EmailAddress struct {

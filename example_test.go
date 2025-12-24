@@ -67,7 +67,7 @@ func testSendEmail(c Client) error {
 	)
 }
 
-func testCreateCalendarItem(c Client) ([]byte, error) {
+func testCreateCalendarItem(c Client) (string, error) {
 	attendee := make([]Attendee, 0)
 	attendee = append(attendee,
 		Attendee{Mailbox: Mailbox{EmailAddress: "mhewedy@mhewedy.onmicrosoft.com"}},
@@ -184,7 +184,7 @@ func testListUsersEvents(c Client) error {
 	return nil
 }
 
-func testCreateEvent(c Client) ([]byte, error) {
+func testCreateEvent(c Client) (string, error) {
 
 	return ewsutil.CreateEvent(c,
 		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example2@mhewedy.onmicrosoft.com"},
@@ -197,7 +197,7 @@ func testCreateEvent(c Client) ([]byte, error) {
 	)
 }
 
-func testCreateHTMLEvent(c Client) ([]byte, error) {
+func testCreateHTMLEvent(c Client) (string, error) {
 
 	return ewsutil.CreateHTMLEvent(c,
 		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example@mhewedy.onmicrosoft.com"},
