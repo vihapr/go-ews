@@ -6,6 +6,6 @@ replace github.com/mhewedy/ews => github.com/vihapr/go-ews v0.0.0-20200806082731
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20191115210519-2b2be6cc8ed4
-	github.com/mhewedy/ews v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.4.0
+	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413 // indirect
 )
