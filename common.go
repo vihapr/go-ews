@@ -14,16 +14,16 @@ const (
 )
 
 type Response struct {
-	ResponseClass ResponseClass `xml:"ResponseClass,attr"`
-	MessageText   string        `xml:"MessageText"`
-	ResponseCode  string        `xml:"ResponseCode"`
-	MessageXml    MessageXml    `xml:"MessageXml"`
-	Items         ResponseItems `xml:"Items"`
+	ResponseClass ResponseClass   `xml:"ResponseClass,attr"`
+	MessageText   string          `xml:"MessageText"`
+	ResponseCode  string          `xml:"ResponseCode"`
+	MessageXml    MessageXml      `xml:"MessageXml"`
+	Items         []ResponseItems `xml:"Items"`
 }
 
 type ResponseItems struct {
-	Message      []Message              `xml:"t:Message"`
-	CalendarItem []CalendarItemResponse `xml:"t:CalendarItem"`
+	Message      []Message            `xml:"t:Message"`
+	CalendarItem CalendarItemResponse `xml:"t:CalendarItem"`
 }
 
 type CalendarItemResponse struct {

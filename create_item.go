@@ -167,9 +167,9 @@ func getItemId(bb []byte) (string, error) {
 
 	resp := soapResp.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage
 
-	if len(resp.Items.CalendarItem) > 0 {
-		return resp.Items.CalendarItem[0].ItemId.Id, nil
+	if len(resp.Items) > 0 {
+		return resp.Items[0].CalendarItem.ItemId.Id, nil
 	} else {
-		return "", nil
+		return "Can not unmarshal response", nil
 	}
 }
