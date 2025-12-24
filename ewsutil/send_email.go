@@ -1,15 +1,26 @@
 package ewsutil
 
-import "github.com/vihapr/go-ews"
+import (
+	"strings"
+
+	"github.com/vihapr/go-ews"
+)
 
 // SendEmail helper method to send Message
 func SendEmail(c ews.Client, to []string, subject, body string) error {
+	trimmedBody := strings.TrimSpace(body)
+	var bodyType string
+	if strings.HasPrefix(trimmedBody, "<") {
+		bodyType = "HTML"
+	} else {
+		bodyType = "Text"
+	}
 
 	m := ews.Message{
 		ItemClass: "IPM.Note",
 		Subject:   subject,
 		Body: ews.Body{
-			BodyType: "Text",
+			BodyType: bodyType,
 			Body:     []byte(body),
 		},
 		Sender: ews.OneMailbox{
