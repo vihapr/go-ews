@@ -116,7 +116,7 @@ func CreateMessageItem(c Client, m ...Message) error {
 
 // CreateCalendarItem
 // https://docs.microsoft.com/en-us/exchange/client-developer/web-service-reference/createitem-operation-calendar-item
-func CreateCalendarItem(c Client, ci ...CalendarItem) error {
+func CreateCalendarItem(c Client, ci ...CalendarItem) ([]byte, error) {
 
 	item := &CreateItem{
 		SendMeetingInvitations: "SendToAllAndSaveCopy",
@@ -126,19 +126,19 @@ func CreateCalendarItem(c Client, ci ...CalendarItem) error {
 
 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bb, err := c.SendAndReceive(xmlBytes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err := checkCreateItemResponseForErrors(bb); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return bb, err
 }
 
 func checkCreateItemResponseForErrors(bb []byte) error {
