@@ -18,7 +18,20 @@ type Response struct {
 	MessageText   string        `xml:"MessageText"`
 	ResponseCode  string        `xml:"ResponseCode"`
 	MessageXml    MessageXml    `xml:"MessageXml"`
-	Items         Items         `xml:"Items"`
+	Items         ResponseItems `xml:"Items"`
+}
+
+type ResponseItems struct {
+	Message      []Message              `xml:"t:Message"`
+	CalendarItem []CalendarItemResponse `xml:"t:CalendarItem"`
+}
+
+type CalendarItemResponse struct {
+	ItemId ResponseItemId `xml:"t:ItemId"`
+}
+
+type ResponseItemId struct {
+	Id string `xml:"Id,attr"`
 }
 
 type EmailAddress struct {

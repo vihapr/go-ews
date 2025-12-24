@@ -32,7 +32,6 @@ type Message struct {
 }
 
 type CalendarItem struct {
-	ItemId                     ItemId      `xml:"t:ItemId"`
 	Subject                    string      `xml:"t:Subject"`
 	Body                       Body        `xml:"t:Body"`
 	ReminderIsSet              bool        `xml:"t:ReminderIsSet"`
