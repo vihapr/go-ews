@@ -7,20 +7,20 @@ import (
 )
 
 func CreateHTMLEvent(
-	c ews.Client, to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
+	c ews.Client, to, optional []string, subject, body, location string, from time.Time, end time.Time, attachments []ews.FileAttachment,
 ) (string, error) {
-	return createEvent(c, to, optional, subject, body, location, "HTML", from, duration)
+	return createEvent(c, to, optional, subject, body, location, "HTML", from, end, attachments)
 }
 
 // CreateEvent helper method to send Message
 func CreateEvent(
-	c ews.Client, to, optional []string, subject, body, location string, from time.Time, duration time.Duration,
+	c ews.Client, to, optional []string, subject, body, location string, from time.Time, end time.Time,
 ) (string, error) {
-	return createEvent(c, to, optional, subject, body, location, "Text", from, duration)
+	return createEvent(c, to, optional, subject, body, location, "Text", from, end, nil)
 }
 
 func createEvent(
-	c ews.Client, to, optional []string, subject, body, location, bodyType string, from time.Time, duration time.Duration,
+	c ews.Client, to, optional []string, subject, body, location, bodyType string, from time.Time, end time.Time, attachments []ews.FileAttachment,
 ) (string, error) {
 
 	requiredAttendees := make([]ews.Attendee, len(to))
@@ -45,13 +45,14 @@ func createEvent(
 		ReminderIsSet:              true,
 		ReminderMinutesBeforeStart: 15,
 		Start:                      from,
-		End:                        from.Add(duration),
+		End:                        end,
 		IsAllDayEvent:              false,
 		LegacyFreeBusyStatus:       ews.BusyTypeBusy,
 		Location:                   location,
 		RequiredAttendees:          []ews.Attendees{{Attendee: requiredAttendees}},
 		OptionalAttendees:          []ews.Attendees{{Attendee: optionalAttendees}},
 		Resources:                  []ews.Attendees{{Attendee: room}},
+		Attachments:                ews.Attachments{Attachments: attachments},
 	}
 
 	return ews.CreateCalendarItem(c, m)

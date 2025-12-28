@@ -44,6 +44,20 @@ type CalendarItem struct {
 	RequiredAttendees          []Attendees `xml:"t:RequiredAttendees"`
 	OptionalAttendees          []Attendees `xml:"t:OptionalAttendees"`
 	Resources                  []Attendees `xml:"t:Resources"`
+	Attachments                Attachments `xml:"t:Attachments,omitempty"`
+}
+
+type Attachments struct {
+	XMLName     xml.Name         `xml:"t:Attachments"`
+	Attachments []FileAttachment `xml:"t:FileAttachment"`
+}
+
+type FileAttachment struct {
+	XMLName     xml.Name `xml:"t:FileAttachment"`
+	ContentId   string   `xml:"t:ContentId,omitempty"`
+	Name        string   `xml:"t:Name,omitempty"`
+	Content     string   `xml:"t:Content,omitempty"` // base64 content
+	ContentType string   `xml:"t:ContentType,omitempty"`
 }
 
 type Body struct {

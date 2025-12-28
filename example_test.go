@@ -184,21 +184,27 @@ func testListUsersEvents(c Client) error {
 	return nil
 }
 
-func testCreateEvent(c Client) (string, error) {
+// func testCreateEvent(c Client) (string, error) {
 
-	return ewsutil.CreateEvent(c,
-		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example2@mhewedy.onmicrosoft.com"},
-		[]string{},
-		"An Event subject",
-		"An Event body, as plain text",
-		"Room 55",
-		time.Now().Add(24*time.Hour),
-		30*time.Minute,
-	)
+// 	return ewsutil.CreateEvent(c,
+// 		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example2@mhewedy.onmicrosoft.com"},
+// 		[]string{},
+// 		"An Event subject",
+// 		"An Event body, as plain text",
+// 		"Room 55",
+// 		time.Now().Add(24*time.Hour),
+// 		time.Now().Add(24*time.Hour+1*time.Hour),
+// 	)
+// }
+
+type AttachmentJSON struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+	Cid  string `json:"cid"`
+	Path string `json:"path"` // base64 encoded content
 }
 
 func testCreateHTMLEvent(c Client) (string, error) {
-
 	return ewsutil.CreateHTMLEvent(c,
 		[]string{"mhewedy@mhewedy.onmicrosoft.com", "example@mhewedy.onmicrosoft.com"},
 		[]string{},
@@ -208,7 +214,8 @@ func testCreateHTMLEvent(c Client) (string, error) {
 		target="_blank">MEGO</a> - the meeting organizer</div>`,
 		"Room 55",
 		time.Now().Add(24*time.Hour),
-		30*time.Minute,
+		time.Now().Add(24*time.Hour+1*time.Hour),
+		nil,
 	)
 }
 
