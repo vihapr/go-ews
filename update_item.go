@@ -3,6 +3,7 @@ package ews
 import (
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -55,6 +56,15 @@ type UpdateItemResponseMessage struct {
 // UpdateCalendarItemTime updates only the start and end time of a calendar item
 // https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/updateitem-operation
 func UpdateCalendarItemTime(c Client, id string, start, end time.Time) (string, error) {
+	// Exchange requires a current ChangeKey on every UpdateItem request. The
+	// caller only knows the item ID, so we resolve the ChangeKey via GetItem
+	// first. This avoids stale-key errors and the generic
+	// "The request is invalid." response Exchange returns when ChangeKey is
+	// missing entirely.
+	changeKey, err := GetCalendarItemChangeKey(c, id)
+	if err != nil {
+		return "", fmt.Errorf("resolve change key: %w", err)
+	}
 
 	item := &UpdateItem{
 		MessageDisposition:     "SaveOnly",
@@ -79,7 +89,7 @@ func UpdateCalendarItemTime(c Client, id string, start, end time.Time) (string, 
 	}
 
 	change := ItemChange{
-		ItemId: ItemId{Id: id},
+		ItemId: ItemId{Id: id, ChangeKey: changeKey},
 		Updates: Updates{
 			SetItem: []SetItemField{startField, endField},
 		},

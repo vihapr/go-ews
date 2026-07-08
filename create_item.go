@@ -44,7 +44,7 @@ type CalendarItem struct {
 	RequiredAttendees          []Attendees `xml:"t:RequiredAttendees"`
 	OptionalAttendees          []Attendees `xml:"t:OptionalAttendees"`
 	Resources                  []Attendees `xml:"t:Resources"`
-	Attachments                Attachments `xml:"t:Attachments,omitempty"`
+	Attachments                *Attachments `xml:"t:Attachments,omitempty"`
 }
 
 type Attachments struct {

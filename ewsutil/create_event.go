@@ -52,7 +52,9 @@ func createEvent(
 		RequiredAttendees:          []ews.Attendees{{Attendee: requiredAttendees}},
 		OptionalAttendees:          []ews.Attendees{{Attendee: optionalAttendees}},
 		Resources:                  []ews.Attendees{{Attendee: room}},
-		Attachments:                ews.Attachments{Attachments: attachments},
+	}
+	if len(attachments) > 0 {
+		m.Attachments = &ews.Attachments{Attachments: attachments}
 	}
 
 	return ews.CreateCalendarItem(c, m)
