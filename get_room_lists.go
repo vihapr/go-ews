@@ -17,7 +17,7 @@ type RoomLists struct {
 
 type ItemId struct {
 	Id        string `xml:"Id,attr"`
-	ChangeKey string `xml:"ChangeKey,attr"`
+	ChangeKey string `xml:"ChangeKey,attr,omitempty"`
 }
 
 type getRoomListsResponseEnvelop struct {
