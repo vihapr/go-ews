@@ -8,16 +8,31 @@ import (
 )
 
 type UpdateItem struct {
-	XMLName                struct{}   `xml:"m:UpdateItem"`
-	MessageDisposition     string     `xml:"MessageDisposition,attr"`
-	SendMeetingInvitations string     `xml:"SendMeetingInvitations,attr"`
-	ConflictResolution     string     `xml:"ConflictResolution,attr"`
-	ItemChanges            []ItemChange `xml:"m:ItemChanges"`
+	XMLName                               struct{}    `xml:"m:UpdateItem"`
+	MessageDisposition                    string      `xml:"MessageDisposition,attr"`
+	SendMeetingInvitationsOrCancellations string      `xml:"SendMeetingInvitationsOrCancellations,attr"`
+	ConflictResolution                    string      `xml:"ConflictResolution,attr"`
+	ItemChanges                           ItemChanges `xml:"m:ItemChanges"`
+}
+
+// ItemChanges — обёртка вокруг списка ItemChange.
+//
+// Когда поле parent'а имеет тег xml:"m:ItemChanges", а сам элемент слайса
+// ItemChange несёт собственный XMLName с t:ItemChange, Go-кодер игнорирует
+// тег слайса и рендерит каждый <t:ItemChange> напрямую под <m:UpdateItem>,
+// пропуская обязательный элемент <m:ItemChanges>. Exchange в таком случае
+// отвергает запрос с HTTP 500 (ErrorInvalidArgument, "The request is invalid.").
+// Явная обёртка с собственным XMLName заставляет Go выдать корректную структуру
+// <m:ItemChanges><t:ItemChange>...</t:ItemChange></m:ItemChanges>.
+type ItemChanges struct {
+	XMLName struct{}     `xml:"m:ItemChanges"`
+	Items   []ItemChange `xml:"t:ItemChange"`
 }
 
 type ItemChange struct {
-	ItemId     ItemId  `xml:"t:ItemId"`
-	Updates    Updates `xml:"t:Updates"`
+	XMLName struct{} `xml:"t:ItemChange"`
+	ItemId  ItemId   `xml:"t:ItemId"`
+	Updates Updates  `xml:"t:Updates"`
 }
 
 type Updates struct {
@@ -25,8 +40,18 @@ type Updates struct {
 }
 
 type SetItemField struct {
-	FieldURI     FieldURI     `xml:"t:FieldURI"`
-	CalendarItem CalendarItem `xml:"t:CalendarItem"`
+	FieldURI     FieldURI           `xml:"t:FieldURI"`
+	CalendarItem updateCalendarItem `xml:"t:CalendarItem"`
+}
+
+// updateCalendarItem содержит только поля, передаваемые внутри SetItemField при
+// UpdateItem. Указатели нужны, чтобы omitempty корректно исключал невыбранные
+// поля: time.Time — это структура, и без указателя она сериализуется даже с
+// нулевым значением (0001-01-01T00:00:00Z), из-за чего Exchange отвергает
+// запрос с "The request is invalid."
+type updateCalendarItem struct {
+	Start *time.Time `xml:"t:Start,omitempty"`
+	End   *time.Time `xml:"t:End,omitempty"`
 }
 
 type updateItemResponseBodyEnvelop struct {
@@ -67,25 +92,21 @@ func UpdateCalendarItemTime(c Client, id string, start, end time.Time) (string, 
 	}
 
 	item := &UpdateItem{
-		MessageDisposition:     "SaveOnly",
-		SendMeetingInvitations: "SendToAllAndSaveCopy",
-		ConflictResolution:     "AlwaysOverwrite",
+		MessageDisposition:                    "SaveOnly",
+		SendMeetingInvitationsOrCancellations: "SendToAllAndSaveCopy",
+		ConflictResolution:                    "AlwaysOverwrite",
 	}
 
 	// Create SetItemField for Start time
 	startField := SetItemField{
-		FieldURI: FieldURI{FieldURI: "calendar:Start"},
-		CalendarItem: CalendarItem{
-			Start: start,
-		},
+		FieldURI:     FieldURI{FieldURI: "calendar:Start"},
+		CalendarItem: updateCalendarItem{Start: &start},
 	}
 
 	// Create SetItemField for End time
 	endField := SetItemField{
-		FieldURI: FieldURI{FieldURI: "calendar:End"},
-		CalendarItem: CalendarItem{
-			End: end,
-		},
+		FieldURI:     FieldURI{FieldURI: "calendar:End"},
+		CalendarItem: updateCalendarItem{End: &end},
 	}
 
 	change := ItemChange{
@@ -95,7 +116,7 @@ func UpdateCalendarItemTime(c Client, id string, start, end time.Time) (string, 
 		},
 	}
 
-	item.ItemChanges = []ItemChange{change}
+	item.ItemChanges = ItemChanges{Items: []ItemChange{change}}
 
 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
 	if err != nil {

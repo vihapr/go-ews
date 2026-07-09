@@ -20,23 +20,23 @@ func Test_marshal_UpdateItem_with_ChangeKey(t *testing.T) {
 
 	startField := SetItemField{
 		FieldURI:     FieldURI{FieldURI: "calendar:Start"},
-		CalendarItem: CalendarItem{Start: start},
+		CalendarItem: updateCalendarItem{Start: &start},
 	}
 	endField := SetItemField{
 		FieldURI:     FieldURI{FieldURI: "calendar:End"},
-		CalendarItem: CalendarItem{End: end},
+		CalendarItem: updateCalendarItem{End: &end},
 	}
 
 	item := &UpdateItem{
-		MessageDisposition:     "SaveOnly",
-		SendMeetingInvitations: "SendToAllAndSaveCopy",
-		ConflictResolution:     "AlwaysOverwrite",
-		ItemChanges: []ItemChange{{
+		MessageDisposition:                    "SaveOnly",
+		SendMeetingInvitationsOrCancellations: "SendToAllAndSaveCopy",
+		ConflictResolution:                    "AlwaysOverwrite",
+		ItemChanges: ItemChanges{Items: []ItemChange{{
 			ItemId: ItemId{Id: "AAA=", ChangeKey: "BBB"},
 			Updates: Updates{
 				SetItem: []SetItemField{startField, endField},
 			},
-		}},
+		}}},
 	}
 
 	xmlBytes, err := xml.MarshalIndent(item, "", "  ")
@@ -46,6 +46,20 @@ func Test_marshal_UpdateItem_with_ChangeKey(t *testing.T) {
 
 	// Critical: ItemId must carry both Id and ChangeKey attributes.
 	assert.Contains(t, out, `<t:ItemId Id="AAA=" ChangeKey="BBB"`)
+	// Critical: <t:ItemChange> elements MUST live inside an <m:ItemChanges>
+	// wrapper. Go's encoding/xml silently drops the wrapper tag when the slice
+	// element has its own XMLName, leaving bare <t:ItemChange> children
+	// directly under <m:UpdateItem>. Exchange rejects that malformed request
+	// with HTTP 500 (ErrorInvalidArgument, "The request is invalid.").
+	assert.Contains(t, out, `<m:ItemChanges>`)
+	assert.Contains(t, out, `</m:ItemChanges>`)
+	assert.Contains(t, out, `<t:ItemChange>`)
+	assert.Contains(t, out, `</t:ItemChange>`)
+	// Critical: UpdateItem must use SendMeetingInvitationsOrCancellations
+	// (the CreateItem attribute SendMeetingInvitations is schema-invalid here
+	// and Exchange rejects it with "The request is invalid.").
+	assert.Contains(t, out, `SendMeetingInvitationsOrCancellations="SendToAllAndSaveCopy"`)
+	assert.NotContains(t, out, `SendMeetingInvitations=`)
 	assert.Contains(t, out, `FieldURI="calendar:Start"`)
 	assert.Contains(t, out, `FieldURI="calendar:End"`)
 	assert.Contains(t, out, "2026-08-11T00:00:00+03:00")
@@ -55,4 +69,12 @@ func Test_marshal_UpdateItem_with_ChangeKey(t *testing.T) {
 	assert.NotContains(t, out, `ChangeKey=""`)
 	// Negative guard: bare ItemId without ChangeKey must never appear.
 	assert.False(t, strings.Contains(out, `<t:ItemId Id="AAA=">`))
+
+	// Negative guard: zero-value fields must not leak into SetItemField —
+	// only the field referenced by FieldURI should be present.
+	assert.NotContains(t, out, "0001-01-01")
+	assert.NotContains(t, out, "<t:Subject>")
+	assert.NotContains(t, out, "<t:Body")
+	assert.NotContains(t, out, "<t:ReminderIsSet>")
+	assert.NotContains(t, out, "<t:Location>")
 }
