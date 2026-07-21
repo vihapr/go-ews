@@ -32,20 +32,23 @@ type Message struct {
 }
 
 type CalendarItem struct {
-	Subject                    string      `xml:"t:Subject"`
-	Body                       Body        `xml:"t:Body"`
-	ReminderIsSet              bool        `xml:"t:ReminderIsSet"`
-	ReminderMinutesBeforeStart int         `xml:"t:ReminderMinutesBeforeStart"`
-	UID                        string      `xml:"t:UID,omitempty"`
-	Start                      time.Time   `xml:"t:Start"`
-	End                        time.Time   `xml:"t:End"`
-	IsAllDayEvent              bool        `xml:"t:IsAllDayEvent"`
-	LegacyFreeBusyStatus       string      `xml:"t:LegacyFreeBusyStatus"`
-	Location                   string      `xml:"t:Location"`
-	RequiredAttendees          []Attendees `xml:"t:RequiredAttendees"`
-	OptionalAttendees          []Attendees `xml:"t:OptionalAttendees"`
-	Resources                  []Attendees `xml:"t:Resources"`
-	Attachments                *Attachments `xml:"t:Attachments,omitempty"`
+	Subject                    string              `xml:"t:Subject"`
+	Body                       Body                `xml:"t:Body"`
+	ReminderIsSet              bool                `xml:"t:ReminderIsSet"`
+	ReminderMinutesBeforeStart int                 `xml:"t:ReminderMinutesBeforeStart"`
+	UID                        string              `xml:"t:UID,omitempty"`
+	MeetingTimeZone            *MeetingTimeZone    `xml:"t:MeetingTimeZone,omitempty"`
+	StartTimeZone              *TimeZoneDefinition `xml:"t:StartTimeZone,omitempty"`
+	EndTimeZone                *TimeZoneDefinition `xml:"t:EndTimeZone,omitempty"`
+	Start                      time.Time           `xml:"t:Start"`
+	End                        time.Time           `xml:"t:End"`
+	IsAllDayEvent              bool                `xml:"t:IsAllDayEvent"`
+	LegacyFreeBusyStatus       string              `xml:"t:LegacyFreeBusyStatus"`
+	Location                   string              `xml:"t:Location"`
+	RequiredAttendees          []Attendees         `xml:"t:RequiredAttendees"`
+	OptionalAttendees          []Attendees         `xml:"t:OptionalAttendees"`
+	Resources                  []Attendees         `xml:"t:Resources"`
+	Attachments                *Attachments        `xml:"t:Attachments,omitempty"`
 }
 
 type Attachments struct {
