@@ -36,6 +36,7 @@ type CalendarItem struct {
 	Body                       Body        `xml:"t:Body"`
 	ReminderIsSet              bool        `xml:"t:ReminderIsSet"`
 	ReminderMinutesBeforeStart int         `xml:"t:ReminderMinutesBeforeStart"`
+	UID                        string      `xml:"t:UID,omitempty"`
 	Start                      time.Time   `xml:"t:Start"`
 	End                        time.Time   `xml:"t:End"`
 	IsAllDayEvent              bool        `xml:"t:IsAllDayEvent"`

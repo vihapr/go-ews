@@ -1,12 +1,16 @@
 package ews
 
 import (
-	"encoding/xml"
+	"context"
 	"errors"
 )
 
 // GetItem represents a SOAP request for the GetItem operation.
 // https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/getitem-operation
+//
+// Зарезервирован для обратной совместимости с тестами и потребителями,
+// рассчитывающими на синглтон-запрос. Публичная функция GetCalendarItemChangeKey
+// теперь делегирует в batch-версию GetCalendarItemsChangeKeys (см. get_item_batch.go).
 type GetItem struct {
 	XMLName   struct{}   `xml:"m:GetItem"`
 	ItemShape ItemShape  `xml:"m:ItemShape"`
@@ -55,36 +59,17 @@ type GetItemResponseMessage struct {
 // UpdateItem requests; use this helper to obtain one when only the item ID is
 // known.
 //
+// Реализован как тонкая обёртка над batch-версией GetCalendarItemsChangeKeys
+// (см. spec §2.5).
+//
 // https://learn.microsoft.com/en-us/exchange/client-developer/web-service-reference/getitem-operation
 func GetCalendarItemChangeKey(c Client, id string) (string, error) {
-	req := &GetItem{
-		ItemShape: ItemShape{BaseShape: BaseShapeIdOnly},
-		ItemIds:   GetItemIds{ItemId: ItemId{Id: id}},
-	}
-
-	xmlBytes, err := xml.MarshalIndent(req, "", "  ")
+	keys, failed, err := GetCalendarItemsChangeKeys(context.Background(), c, []string{id})
 	if err != nil {
 		return "", err
 	}
-
-	bb, err := c.SendAndReceive(xmlBytes)
-	if err != nil {
-		return "", err
-	}
-
-	var soapResp getItemResponseBodyEnvelop
-	if err := xml.Unmarshal(bb, &soapResp); err != nil {
-		return "", err
-	}
-
-	msg := soapResp.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage
-	if msg.ResponseClass == ResponseClassError {
-		return "", errors.New(msg.MessageText)
-	}
-
-	changeKey := msg.Items.CalendarItem.ItemId.ChangeKey
-	if changeKey == "" {
+	if len(failed) > 0 {
 		return "", errors.New("exchange returned empty ChangeKey for item " + id)
 	}
-	return changeKey, nil
+	return keys[id], nil
 }

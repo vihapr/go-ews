@@ -66,3 +66,70 @@ func Test_marshal_CalendarItem(t *testing.T) {
   </t:RequiredAttendees>
 </CalendarItem>`, string(xmlBytes))
 }
+
+// Test_marshal_CalendarItem_with_UID проверяет, что заполненный UID
+// сериализуется как <t:UID> в позиции, предписанной EWS-схемой
+// CalendarItemType (перед <t:Start>).
+func Test_marshal_CalendarItem_with_UID(t *testing.T) {
+	start, _ := time.Parse(time.RFC3339, "2026-02-19T10:00:00Z")
+	end, _ := time.Parse(time.RFC3339, "2026-02-19T11:00:00Z")
+
+	citem := &CalendarItem{
+		Subject:                    "Absence",
+		ReminderIsSet:              false,
+		ReminderMinutesBeforeStart: 0,
+		UID:                        "11223344-5566-7788-99aa-bbccddeeff00",
+		Start:                      start,
+		End:                        end,
+		IsAllDayEvent:              false,
+		LegacyFreeBusyStatus:       "OOF",
+	}
+
+	xmlBytes, err := xml.MarshalIndent(citem, "", "  ")
+	assert.NoError(t, err)
+
+	out := string(xmlBytes)
+
+	// UID должен присутствовать ровно один раз, в позиции между
+	// ReminderMinutesBeforeStart и Start (EWS CalendarItemType schema).
+	assert.Contains(t, out, "<t:UID>11223344-5566-7788-99aa-bbccddeeff00</t:UID>")
+
+	// Схема-корректная позиция: UID перед Start.
+	startIdx := indexOf(t, out, "<t:Start>")
+	uidIdx := indexOf(t, out, "<t:UID>")
+	if uidIdx >= startIdx {
+		t.Fatalf("UID must precede Start in CalendarItem XML schema; got UID at %d, Start at %d", uidIdx, startIdx)
+	}
+}
+
+// Test_marshal_CalendarItem_without_UID_unchanged — существующий снапшот
+// Test_marshal_CalendarItem уже покрывает случай без UID (тег omitempty
+// исключает поле). Здесь дополнительно страхуем от случайной утечки
+// пустого <t:UID></t:UID> в простом сценарии.
+func Test_marshal_CalendarItem_without_UID_unchanged(t *testing.T) {
+	citem := &CalendarItem{
+		Subject:              "no uid",
+		ReminderIsSet:        false,
+		Start:                time.Time{},
+		End:                  time.Time{},
+		IsAllDayEvent:        false,
+		LegacyFreeBusyStatus: "Busy",
+	}
+
+	xmlBytes, err := xml.MarshalIndent(citem, "", "  ")
+	assert.NoError(t, err)
+
+	assert.NotContains(t, string(xmlBytes), "<t:UID>")
+}
+
+func indexOf(t *testing.T, s, sub string) int {
+	t.Helper()
+	idx := -1
+	for i := 0; i+len(sub) <= len(s); i++ {
+		if s[i:i+len(sub)] == sub {
+			return i
+		}
+	}
+	return idx
+}
+

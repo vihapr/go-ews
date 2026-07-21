@@ -2,10 +2,11 @@ package ews
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"fmt"
 	"github.com/Azure/go-ntlmssp"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httputil"
 )
@@ -33,6 +34,7 @@ type Config struct {
 
 type Client interface {
 	SendAndReceive(body []byte) ([]byte, error)
+	SendAndReceiveContext(ctx context.Context, body []byte) ([]byte, error)
 	GetEWSAddr() string
 	GetUsername() string
 }
@@ -62,12 +64,19 @@ func NewClient(ewsAddr, username, password string, config *Config) Client {
 }
 
 func (c *client) SendAndReceive(body []byte) ([]byte, error) {
+	return c.SendAndReceiveContext(context.Background(), body)
+}
+
+func (c *client) SendAndReceiveContext(ctx context.Context, body []byte) ([]byte, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 
 	bb := []byte(soapStart)
 	bb = append(bb, body...)
 	bb = append(bb, soapEnd...)
 
-	req, err := http.NewRequest("POST", c.EWSAddr, bytes.NewReader(bb))
+	req, err := http.NewRequestWithContext(ctx, "POST", c.EWSAddr, bytes.NewReader(bb))
 	if err != nil {
 		return nil, err
 	}
@@ -77,14 +86,14 @@ func (c *client) SendAndReceive(body []byte) ([]byte, error) {
 	req.SetBasicAuth(c.Username, c.Password)
 	req.Header.Set("Content-Type", "text/xml")
 
-	client := &http.Client{
+	httpClient := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
 	}
-	applyConfig(c.config, client)
+	applyConfig(c.config, httpClient)
 
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +104,7 @@ func (c *client) SendAndReceive(body []byte) ([]byte, error) {
 		return nil, NewError(resp)
 	}
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
