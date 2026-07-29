@@ -338,6 +338,7 @@ err := ewsutil.SendEmail(c,
     []string{"alice@example.com", "bob@example.com"},
     "Тема письма",
     "Тело письма plain text",
+    nil, // attachments []ews.FileAttachment
 )
 ```
 
@@ -395,7 +396,7 @@ resp, err := ews.GetRoomLists(c)
 | `ewsutil.DeleteCalendarEvent(c, id)`         | `ews.DeleteCalendarItem`                     |
 | `ewsutil.UpdateEventTime(c, id, s, e)`       | `ews.UpdateCalendarItemTime`                 |
 | `ewsutil.ListUsersEvents(c, users, from, d)` | `ews.GetUserAvailability`                    |
-| `ewsutil.SendEmail(c, to, subject, body)`    | `ews.CreateMessageItem`                      |
+| `ewsutil.SendEmail(c, to, subject, body, atts)` | `ews.CreateMessageItem`                      |
 | `ewsutil.FindPeople(c, q)`                   | `ews.FindPeople`                             |
 | `ewsutil.GetPersona(c, id)`                  | `ews.GetPersona`                             |
 | `ewsutil.GetUserPhoto*`                      | см. таблицу выше                             |

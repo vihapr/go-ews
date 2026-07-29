@@ -7,7 +7,7 @@ import (
 )
 
 // SendEmail helper method to send Message
-func SendEmail(c ews.Client, to []string, subject, body string) error {
+func SendEmail(c ews.Client, to []string, subject, body string, attachments []ews.FileAttachment) error {
 	trimmedBody := strings.TrimSpace(body)
 	var bodyType string
 	if strings.HasPrefix(trimmedBody, "<") {
@@ -34,6 +34,10 @@ func SendEmail(c ews.Client, to []string, subject, body string) error {
 		mb[i].EmailAddress = addr
 	}
 	m.ToRecipients.Mailbox = append(m.ToRecipients.Mailbox, mb...)
+
+	if len(attachments) > 0 {
+		m.Attachments = &ews.Attachments{Attachments: attachments}
+	}
 
 	return ews.CreateMessageItem(c, m)
 }

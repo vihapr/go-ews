@@ -24,11 +24,12 @@ type SavedItemFolderId struct {
 }
 
 type Message struct {
-	ItemClass    string     `xml:"t:ItemClass"`
-	Subject      string     `xml:"t:Subject"`
-	Body         Body       `xml:"t:Body"`
-	Sender       OneMailbox `xml:"t:Sender"`
-	ToRecipients XMailbox   `xml:"t:ToRecipients"`
+	ItemClass    string       `xml:"t:ItemClass"`
+	Subject      string       `xml:"t:Subject"`
+	Body         Body         `xml:"t:Body"`
+	Sender       OneMailbox   `xml:"t:Sender"`
+	ToRecipients XMailbox     `xml:"t:ToRecipients"`
+	Attachments  *Attachments `xml:"t:Attachments,omitempty"`
 }
 
 type CalendarItem struct {
