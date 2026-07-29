@@ -334,11 +334,19 @@ Exchange ограничивает число операций в одном batc
 ## Email
 
 ```go
+// без вложений
 err := ewsutil.SendEmail(c,
     []string{"alice@example.com", "bob@example.com"},
     "Тема письма",
     "Тело письма plain text",
-    nil, // attachments []ews.FileAttachment
+)
+
+// с вложениями
+err := ewsutil.SendEmail(c,
+    []string{"alice@example.com"},
+    "Тема письма",
+    "<p>HTML тело</p>",
+    ews.FileAttachment{ContentId: "logo@nodemailer.com", Name: "logo.png", Content: base64Content, ContentType: "image/png"},
 )
 ```
 

@@ -6,8 +6,9 @@ import (
 	"github.com/vihapr/go-ews"
 )
 
-// SendEmail helper method to send Message
-func SendEmail(c ews.Client, to []string, subject, body string, attachments []ews.FileAttachment) error {
+// SendEmail helper method to send Message.
+// attachments is variadic so existing callers (without attachments) compile unchanged.
+func SendEmail(c ews.Client, to []string, subject, body string, attachments ...ews.FileAttachment) error {
 	trimmedBody := strings.TrimSpace(body)
 	var bodyType string
 	if strings.HasPrefix(trimmedBody, "<") {

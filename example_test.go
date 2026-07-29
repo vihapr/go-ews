@@ -64,7 +64,6 @@ func testSendEmail(c Client) error {
 		[]string{"mhewedy@gmail.com", "someone@else.com"},
 		"An email subject",
 		"The email body, as plain text",
-		nil,
 	)
 }
 
